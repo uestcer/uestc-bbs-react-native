@@ -14,10 +14,8 @@ import styles from '../../styles/components/modal/_PublishModal';
 import colors from '../../styles/common/_colors';
 import Header from '../Header';
 import TopicTypeModal from './TopicTypeModal';
-import { resetPublish } from '../../actions/topic/topicAction';
-import { invalidateTopicList } from '../../actions/topic/topicListAction';
 
-class PublishModal extends Component {
+export default class PublishModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -32,8 +30,8 @@ class PublishModal extends Component {
   componentWillReceiveProps(nextProps) {
     const comment = nextProps.comment;
     if (comment.response && comment.response.rs) {
-      this.props.dispatch(resetPublish());
-      this.props.dispatch(invalidateTopicList());
+      this.props.resetPublish();
+      this.props.invalidateTopicList();
       this.props.router.toHome();
       this.handleCancel();
     }
@@ -56,11 +54,21 @@ class PublishModal extends Component {
 
   _isFormValid() {
     let { typeId, title, content } = this.state;
+    let { comment, types } = this.props;
 
-    return typeId !== null
+    let hasNoTopicTypes = types.length === 0;
+    let hasTypeId = hasNoTopicTypes && true || (typeId !== null);
+
+    return hasTypeId
         && title.length
         && content.length
-        && !this.props.comment.isPublishing;
+        && !comment.isPublishing;
+  }
+
+  _handlePublish(topic) {
+    this.titleInput.blur();
+    this.contentInput.blur();
+    this.props.handlePublish(topic);
   }
 
   render() {
@@ -88,7 +96,7 @@ class PublishModal extends Component {
             {this._isFormValid() &&
               <Text
                 style={modalStyles.button}
-                onPress={() => this.props.handlePublish({
+                onPress={() => this._handlePublish({
                   typeId,
                   title,
                   content
@@ -103,28 +111,32 @@ class PublishModal extends Component {
             }
           </Header>
           <ScrollView style={styles.form}>
-            <TouchableHighlight
-              underlayColor={colors.underlay}
-              onPress={() => this._topicTypeModal.openTopicTypeModal()}>
-              <View style={styles.formItem}>
-                <Text
-                  style={styles.topicType}>
-                  {typeId && types.find(type => type.typeId === typeId).typeName || '请选择分类'}
-                </Text>
-                <Icon
-                  style={styles.topicTypeIcon}
-                  name='angle-right'
-                  size={18} />
-              </View>
-            </TouchableHighlight>
+            {types.length > 0 &&
+              <TouchableHighlight
+                underlayColor={colors.underlay}
+                onPress={() => this._topicTypeModal.openTopicTypeModal()}>
+                <View style={styles.formItem}>
+                  <Text
+                    style={styles.topicType}>
+                    {typeId && types.find(type => type.typeId === typeId).typeName || '请选择分类'}
+                  </Text>
+                  <Icon
+                    style={styles.topicTypeIcon}
+                    name='angle-right'
+                    size={18} />
+                </View>
+              </TouchableHighlight>
+            }
             <View style={styles.formItem}>
               <TextInput
+                ref={component => this.titleInput = component}
                 style={styles.topicTitle}
                 onChangeText={text => this.setState({ title: text })}
                 placeholder='请输入标题' />
             </View>
             <View style={styles.formItem}>
               <TextInput
+                ref={component => this.contentInput = component}
                 style={styles.topicContent}
                 onChangeText={text => this.setState({ content: text })}
                 multiline={true}
@@ -136,5 +148,3 @@ class PublishModal extends Component {
     );
   }
 }
-
-module.exports = PublishModal;

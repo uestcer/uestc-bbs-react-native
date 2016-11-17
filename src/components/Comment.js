@@ -5,13 +5,14 @@ import {
   Image,
   TouchableHighlight
 } from 'react-native';
+import Content from './Content';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import moment from 'moment';
 import styles from '../styles/components/_Comment';
 import { CommentButton } from './button';
-import { parseContentWithImage } from '../utils/app';
+import { parseContentWithImage } from '../utils/contentParser';
 
-class Comment extends Component {
+export default class Comment extends Component {
   render() {
     let {
       reply_name,
@@ -37,7 +38,7 @@ class Comment extends Component {
             <Text style={styles.name}>{reply_name}</Text>
             <Text style={styles.level}>{userTitle}</Text>
           </View>
-          <Text style={styles.floor}>#{position}</Text>
+          <Text style={styles.floor}>#{position - 1}</Text>
         </View>
         <View style={styles.comment}>
           {!!is_quote &&
@@ -45,22 +46,8 @@ class Comment extends Component {
               <Text style={styles.quoteContent}>{quote_content}</Text>
             </View>
           }
-          {reply_content.map((content, index) => {
-            switch (content.type) {
-              // text
-              case 0:
-              default:
-                return <Text key={index}
-                             style={styles.commentSection}>
-                         {parseContentWithImage(content.infor)}
-                       </Text>;
-              // pic
-              case 1:
-                return <Image key={index}
-                              style={[styles.commentSection, styles.commentImage]}
-                              source={{ uri: content.originalInfo }} />;
-            }
-          })}
+          <Content content={reply_content}
+                   router={this.props.router} />
         </View>
         <View style={styles.other}>
           <Text style={styles.date}>{posts_date}</Text>
@@ -80,5 +67,3 @@ class Comment extends Component {
     );
   }
 }
-
-module.exports = Comment;

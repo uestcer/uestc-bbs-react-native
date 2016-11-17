@@ -10,9 +10,8 @@ import mainStyles from '../../styles/components/_Main';
 import modalStyles from '../../styles/common/_Modal';
 import styles from '../../styles/components/modal/_ReplyModal';
 import Header from '../Header';
-import { resetPublish } from '../../actions/topic/topicAction';
 
-class ReplyModal extends Component {
+export default class ReplyModal extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -26,7 +25,7 @@ class ReplyModal extends Component {
     const comment = nextProps.comment;
     if (comment.response && comment.response.rs) {
       this.handleCancel();
-      this.props.dispatch(resetPublish());
+      this.props.resetPublish();
       this.props.fetchTopic();
     }
   }
@@ -59,8 +58,13 @@ class ReplyModal extends Component {
     });
   }
 
+  _handlePublish(content, replyId) {
+    this.contentInput.blur();
+    this.props.handlePublish(content, replyId);
+  }
+
   render() {
-    let { comment, handlePublish } = this.props;
+    let { comment } = this.props;
     let { isModalOpen, title, replyContent, replyId } = this.state;
 
     return (
@@ -79,7 +83,7 @@ class ReplyModal extends Component {
             {(replyContent.length && !comment.isPublishing ) &&
               <Text
                 style={modalStyles.button}
-                onPress={() => handlePublish(replyContent, replyId)}>
+                onPress={() => this._handlePublish(replyContent, replyId)}>
                 发布
               </Text>
               ||
@@ -90,9 +94,9 @@ class ReplyModal extends Component {
             }
           </Header>
           <TextInput
+            ref={component => this.contentInput = component}
             placeholder='同学，请文明用语噢～'
             style={styles.replyBox}
-            value={replyContent}
             onChangeText={(text) => this.setState({ replyContent: text })}
             autoFocus={true}
             multiline={true} />
@@ -101,5 +105,3 @@ class ReplyModal extends Component {
     );
   }
 }
-
-module.exports = ReplyModal;

@@ -1,30 +1,40 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import {
   View,
   Text,
   Image,
   AlertIOS,
   ScrollView,
-  ActivityIndicatorIOS,
+  ActivityIndicator,
   ListView
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import moment from 'moment';
 import mainStyles from '../styles/components/_Main';
 import indicatorStyles from '../styles/common/_Indicator';
-import styles from '../styles/components/_TopicDetail';
-import Header from './Header';
-import ReplyModal from './modal/ReplyModal';
-import Comment from './Comment';
-import { PopButton, ReplyButton, CommentButton } from './button';
-import { fetchTopic, resetTopic, publish } from '../actions/topic/topicAction';
-import { parseContentWithImage } from '../utils/app';
+import styles from '../styles/containers/_TopicDetail';
+import Header from '../components/Header';
+import ReplyModal from '../components/modal/ReplyModal';
+import Comment from '../components/Comment';
+import Content from '../components/Content';
+import VoteList from '../components/VoteList';
+import { PopButton, ReplyButton, CommentButton } from '../components/button';
+import {
+  fetchTopic,
+  resetTopic,
+  publish,
+  resetPublish,
+  publishVote,
+  resetVote
+} from '../actions/topic/topicAction';
 
 const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
 class TopicDetail extends Component {
   constructor(props) {
     super(props);
+
     this.topicId = props.passProps.topic_id;
     this.boardId = props.passProps.board_id;
     this.boardName = props.passProps.board_name;
@@ -35,21 +45,21 @@ class TopicDetail extends Component {
   }
 
   componentWillUnmount() {
-    this.props.dispatch(resetTopic());
+    this.props.resetTopic();
   }
 
   componentWillReceiveProps(nextProps) {
-    let { topicItem } = nextProps.entity;
+    let { topicItem } = nextProps;
 
     if (topicItem.errCode) {
       AlertIOS.alert('提示', topicItem.errCode);
-      nextProps.dispatch(resetTopic());
+      nextProps.resetTopic();
       nextProps.router.pop();
     }
   }
 
   fetchTopic() {
-    this.props.dispatch(fetchTopic(this.topicId));
+    this.props.fetchTopic(this.topicId);
   }
 
   _endReached() {
@@ -58,14 +68,14 @@ class TopicDetail extends Component {
       isFetching,
       isEndReached,
       page
-    } = this.props.entity.topicItem;
+    } = this.props.topicItem;
 
     if (!hasMore || isFetching || isEndReached) { return; }
 
-    this.props.dispatch(fetchTopic(this.topicId, true, page + 1));
+    this.props.fetchTopic(this.topicId, true, page + 1);
   }
 
-  _renderHeader(topic, token) {
+  _renderHeader(topic, token, vote) {
     let create_date = moment(+topic.create_date).startOf('minute').fromNow();
     let commentHeaderText =
       topic.replies > 0 ? (topic.replies + '条评论') : '还没有评论，快来抢沙发！';
@@ -101,22 +111,16 @@ class TopicDetail extends Component {
             <Text style={styles.floor}>楼主</Text>
           </View>
           <View style={styles.content}>
-            {topic.content.map((content, index) => {
-              switch (content.type) {
-                // text
-                case 0:
-                default:
-                  return <Text key={index}
-                               style={styles.contentItem}>
-                           {parseContentWithImage(content.infor)}
-                         </Text>;
-                // pic
-                case 1:
-                  return <Image key={index}
-                                style={[styles.contentItem, styles.contentImage]}
-                                source={{ uri: content.originalInfo }} />;
-              }
-            })}
+            <Content content={topic.content}
+                     router={this.props.router} />
+            {topic.poll_info &&
+              <VoteList
+                pollInfo={topic.poll_info}
+                vote={vote}
+                publishVote={voteIds => this._publishVote(voteIds)}
+                resetVote={() => this._resetVote()}
+                fetchTopic={() => this.fetchTopic()} />
+            }
           </View>
           <View style={styles.other}>
             <Text style={styles.date}>{create_date}</Text>
@@ -147,26 +151,37 @@ class TopicDetail extends Component {
     let {
       hasMore,
       isEndReached
-    } = this.props.entity.topicItem;
+    } = this.props.topicItem;
 
     if (!hasMore || !isEndReached) { return; }
 
     return (
       <View style={indicatorStyles.endRechedIndicator}>
-        <ActivityIndicatorIOS />
+        <ActivityIndicator />
       </View>
     );
   }
 
   _publish(comment, replyId) {
-    this.props.dispatch(publish(
+    this.props.publish(
       this.boardId,
       this.topicId,
       replyId,
       null,
       null,
       comment
-    ));
+    );
+  }
+
+  _publishVote(voteIds) {
+    this.props.publishVote(
+      this.topicId,
+      voteIds
+    );
+  }
+
+  _resetVote() {
+    this.props.resetVote();
   }
 
   _openReplyModal(comment) {
@@ -174,7 +189,7 @@ class TopicDetail extends Component {
   }
 
   render() {
-    let { topicItem, comment, user } = this.props.entity;
+    let { topicItem, comment, vote, user } = this.props;
 
     if (topicItem.isFetching || !topicItem.topic || !topicItem.topic.topic_id) {
       return (
@@ -183,7 +198,7 @@ class TopicDetail extends Component {
             <PopButton router={this.props.router} />
           </Header>
           <View style={indicatorStyles.fullScreenIndicator}>
-            <ActivityIndicatorIOS />
+            <ActivityIndicator />
           </View>
         </View>
       );
@@ -214,20 +229,40 @@ class TopicDetail extends Component {
         <ListView
           style={styles.commentList}
           dataSource={commentSource}
+          enableEmptySections={true}
           renderRow={comment =>
             <Comment
               key={comment.reply_posts_id}
               comment={comment}
               token={token}
+              router={this.props.router}
               openReplyModal={() => this._openReplyModal(comment)} />
           }
           onEndReached={() => this._endReached()}
           onEndReachedThreshold={0}
-          renderHeader={() => this._renderHeader(topic, token)}
+          renderHeader={() => this._renderHeader(topic, token, vote)}
           renderFooter={() => this._renderFooter()} />
       </View>
     );
   }
 }
 
-module.exports = TopicDetail;
+function mapStateToProps(state) {
+  let { topicItem, comment, vote, user } = state;
+
+  return {
+    topicItem,
+    comment,
+    vote,
+    user
+  };
+}
+
+export default connect(mapStateToProps, {
+  publish,
+  resetPublish,
+  fetchTopic,
+  resetTopic,
+  publishVote,
+  resetVote
+})(TopicDetail);

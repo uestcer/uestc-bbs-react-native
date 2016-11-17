@@ -1,16 +1,24 @@
 import { API_ROOT, PLAT_TYPE } from '../../config';
-import { getAppHashValue, fetchWithToken } from '../../utils/app';
+import { getAppHashValue } from '../../utils/app';
+import { fetchWithToken } from '../../utils/request';
 import {
   REQUEST_TOPIC,
   RECEIVE_TOPIC,
   RESET_TOPIC,
+
   START_PUBLISH,
   FINISH_PUBLISH,
-  RESET_PUBLISH
+  RESET_PUBLISH,
+
+  START_VOTE,
+  FINISH_VOTE,
+  RESET_VOTE
 } from '../../constants/ActionTypes';
 
 const TOPIC_FETCH_API_PATH = 'forum/postlist';
 const TOPIC_POST_API_PATH = 'forum/topicadmin';
+const VOTE_API_PATH = 'forum/vote';
+
 const ACTIONS = {
   REPLY: 'reply',
   NEW: 'new'
@@ -80,17 +88,14 @@ function assemblePayload(
   };
 }
 
-function assembleFetchOptions(payload) {
-  // check `tid` (aka `topicId`) for obtaining `action`
-  let action = payload.body.json.tid ? ACTIONS.REPLY : ACTIONS.NEW;
-
+function getFetchOptions(body) {
   return {
     method: 'POST',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'
     },
-    body: `act=${action}&json=${JSON.stringify(payload)}`
+    body
   };
 }
 
@@ -102,9 +107,11 @@ export function publish(boardId, topicId, replyId, typeId, title, content) {
                      TOPIC_POST_API_PATH +
                      `&apphash=${getAppHashValue()}` +
                      `&platType=${PLAT_TYPE}`;
-
     let payload = assemblePayload(boardId, topicId, replyId, typeId, title, content);
-    let fetchOptions = assembleFetchOptions(payload);
+    // check `tid` (aka `topicId`) for obtaining `action`
+    let action = payload.body.json.tid ? ACTIONS.REPLY : ACTIONS.NEW;
+    let body = `act=${action}&json=${JSON.stringify(payload)}`;
+    let fetchOptions = getFetchOptions(body);
 
     return fetchWithToken(requestUrl, fetchOptions, dispatch, finishPublish);
   };
@@ -126,5 +133,37 @@ function finishPublish(response) {
 export function resetPublish() {
   return {
     type: RESET_PUBLISH
+  };
+}
+
+export function publishVote(topicId, voteIds) {
+  return dispatch => {
+    dispatch(startVote());
+
+    let requestUrl = API_ROOT +
+                     VOTE_API_PATH;
+    let body = `tid=${topicId}&options=${voteIds}`;
+    let fetchOptions = getFetchOptions(body);
+
+    return fetchWithToken(requestUrl, fetchOptions, dispatch, finishVote);
+  };
+}
+
+function startVote() {
+  return {
+    type: START_VOTE
+  };
+}
+
+function finishVote(response) {
+  return {
+    type: FINISH_VOTE,
+    response
+  };
+}
+
+export function resetVote() {
+  return {
+    type: RESET_VOTE
   };
 }

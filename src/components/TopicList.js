@@ -1,34 +1,16 @@
 import React, { Component } from 'react';
 import {
   View,
-  Text,
   ListView,
   RefreshControl,
-  ActivityIndicatorIOS
+  ActivityIndicator
 } from 'react-native';
 import indicatorStyles from '../styles/common/_Indicator';
 import TopicItem from './TopicItem';
-import { invalidateTopicList, fetchTopicListIfNeeded } from '../actions/topic/topicListAction';
 
 const ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 });
 
-class TopicList extends Component {
-  constructor(props) {
-    super(props);
-
-    var forum = props.passProps;
-    this.boardId = forum && forum.board_id || 'all';
-  }
-
-  componentDidMount() {
-    this.props.dispatch(fetchTopicListIfNeeded(this.boardId, false, 'all'));
-  }
-
-  _refreshTopicList(page, isEndReached) {
-    this.props.dispatch(invalidateTopicList());
-    this.props.dispatch(fetchTopicListIfNeeded(this.boardId, isEndReached, 'all', page));
-  }
-
+export default class TopicList extends Component {
   _endReached() {
     const {
       hasMore,
@@ -36,7 +18,7 @@ class TopicList extends Component {
       isEndReached,
       page,
       list
-    } = this.props.list.topicList;
+    } = this.props.topicList;
 
     if (!hasMore || isRefreshing || isEndReached) { return; }
 
@@ -45,61 +27,66 @@ class TopicList extends Component {
     * without logging in, that will leads the error alter appears two
     * times, so check whether there are topics already to avoid this issue.
     */
-    if (!list[this.boardId].topicList.length) { return; }
+    // if (!list[this.props.boardId].topicList.length) { return; }
 
-    this._refreshTopicList(page + 1, true);
+    this.props.refreshTopicList(page + 1, true);
   }
 
   _renderFooter() {
     let {
       hasMore,
       isEndReached
-    } = this.props.list.topicList;
+    } = this.props.topicList;
 
     if (!hasMore || !isEndReached) { return; }
 
     return (
       <View style={indicatorStyles.endRechedIndicator}>
-        <ActivityIndicatorIOS />
+        <ActivityIndicator />
       </View>
     );
   }
 
   render() {
-    let { topicList } = this.props.list;
+    let { topicList, boardId, isSearch } = this.props;
+    let realTopicList = null;
+    let refreshControl = null;
 
-    if (!topicList.list[this.boardId]) {
-      topicList.list[this.boardId] = {
-        typeList: [],
-        topicList: []
-      };
+    if (!isSearch) {
+      if (!topicList.list[boardId]) {
+        topicList.list[boardId] = {
+          typeList: [],
+          topicList: []
+        };
+      }
+
+      realTopicList = topicList.list[boardId].topicList;
+      refreshControl = <RefreshControl
+                         title='正在加载...'
+                         onRefresh={() => this.props.refreshTopicList()}
+                         refreshing={topicList.isRefreshing} />;
+    } else {
+      realTopicList = topicList.list;
     }
 
-    let realTopicList = topicList.list[this.boardId].topicList;
     let source = ds.cloneWithRows(realTopicList);
 
     return (
       <ListView
         dataSource={source}
+        enableEmptySections={true}
         renderRow={topic => {
           return (
             <TopicItem
               key={topic.topic_id}
               topic={topic}
               router={this.props.router} />
-          )
+          );
         }}
         onEndReached={() => this._endReached()}
         onEndReachedThreshold={0}
         renderFooter={() => this._renderFooter()}
-        refreshControl={
-          <RefreshControl
-            title='正在加载...'
-            onRefresh={() => this._refreshTopicList()}
-            refreshing={topicList.isRefreshing} />
-        } />
+        refreshControl={refreshControl} />
     );
   }
 }
-
-module.exports = TopicList;

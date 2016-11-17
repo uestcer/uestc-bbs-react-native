@@ -1,18 +1,18 @@
 import { StyleSheet } from 'react-native';
 import colors from '../common/_colors';
 
-module.exports = StyleSheet.create({
+export default StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: colors.white,
   },
   forumHeader: {
     height: 25,
-    backgroundColor: colors.underlay,
+    backgroundColor: colors.lightBlue,
     alignItems: 'center',
     justifyContent: 'center',
   },
   forumTitle: {
+    color: colors.white,
     fontSize: 16,
   },
 });

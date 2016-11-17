@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableHighlight
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -11,7 +12,7 @@ import 'moment/locale/zh-cn';
 import styles from '../styles/components/_TopicItem';
 import colors from '../styles/common/_colors';
 
-class TopicItem extends Component {
+export default class TopicItem extends Component {
   render() {
     let {
       title,
@@ -19,7 +20,8 @@ class TopicItem extends Component {
       replies,
       board_name,
       user_nick_name,
-      last_reply_date
+      last_reply_date,
+      userAvatar
     } = this.props.topic;
 
     // `last_reply_date` is timestamp in string from API
@@ -33,9 +35,11 @@ class TopicItem extends Component {
           <View style={styles.item}>
             <Text style={styles.title}>{title}</Text>
             <View style={styles.info}>
-              <View style={styles.forumInfo}>
-                <Text style={styles.forumName}>{board_name}</Text>
-              </View>
+              {board_name &&
+                <View style={styles.forumInfo}>
+                  <Text style={styles.forumName}>{board_name}</Text>
+                </View>
+              }
               <View style={styles.details}>
                 <Icon
                   style={styles.viewsInfo}
@@ -52,6 +56,7 @@ class TopicItem extends Component {
             <View style={styles.info}>
               <Text style={styles.date}>{last_reply_date}</Text>
               <Text style={styles.name}>{user_nick_name}</Text>
+              {userAvatar && <Image style={styles.avatar} source={{ uri: userAvatar }} />}
             </View>
           </View>
         </TouchableHighlight>
@@ -59,5 +64,3 @@ class TopicItem extends Component {
     );
   }
 }
-
-module.exports = TopicItem;

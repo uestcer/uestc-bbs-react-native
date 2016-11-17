@@ -11,11 +11,11 @@ import {
 import Button from 'apsl-react-native-button';
 import mainStyles from '../../styles/components/_Main';
 import styles from '../../styles/components/modal/_LoginModal';
-import { userLogin, resetAuthrization, resetAuthrizationResult } from '../../actions/authorizeAction';
 
-class Login extends Component {
+export default class Login extends Component {
   constructor(props) {
     super(props);
+
     this.state = {
       isModalOpen: !!this.props.visible,
       userName: '',
@@ -28,16 +28,18 @@ class Login extends Component {
 
     if (hasError) {
       AlertIOS.alert('提示', authrization.errcode);
-      nextProps.dispatch(resetAuthrization());
+      nextProps.resetAuthrization();
     }
 
     if (result) {
-      this.props.dispatch(resetAuthrizationResult());
+      this.props.resetAuthrizationResult();
       authrization = JSON.stringify(authrization);
       AsyncStorage.setItem('authrization', authrization)
         .then(() => {
-          this.context.menuActions.close();
-          this.props.router.toHome();
+          this.props.selectMenuItem({
+            title: '最新',
+            actionName: 'toHome'
+          });
           this._closeLoginModal();
         });
     }
@@ -55,6 +57,12 @@ class Login extends Component {
       userName: '',
       password: ''
     });
+  }
+
+  _handleSubmit(userName, password) {
+    this.userNameInput.blur();
+    this.passwordInput.blur();
+    this.props.userLogin(userName, password);
   }
 
   render() {
@@ -78,13 +86,13 @@ class Login extends Component {
           </View>
           <View style={styles.form}>
             <TextInput
-              value={this.state.userName}
+              ref={component => this.userNameInput = component}
               style={[styles.formItem, styles.formInput]}
               onChangeText={text => this.setState({ userName: text })}
               placeholder='请输入用户名'
               autoFocus={true} />
             <TextInput
-              value={this.state.password}
+              ref={component => this.passwordInput = component}
               style={[styles.formItem, styles.formInput]}
               onChangeText={text => this.setState({ password: text })}
               placeholder='请输入密码'
@@ -94,7 +102,7 @@ class Login extends Component {
               textStyle={styles.formSubmitText}
               isDisabled={isDisabled}
               isLoading={isFetching}
-              onPress={() => this.props.dispatch(userLogin(userName, password))}>
+              onPress={() => this._handleSubmit(userName, password)}>
               登录
             </Button>
           </View>
@@ -103,9 +111,3 @@ class Login extends Component {
     );
   }
 }
-
-Login.contextTypes = {
-  menuActions: React.PropTypes.object.isRequired
-};
-
-module.exports = Login;

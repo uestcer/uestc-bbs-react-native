@@ -1,10 +1,7 @@
-import {
-  Image,
-  StyleSheet
-} from 'react-native';
+import { StyleSheet } from 'react-native';
 import colors from '../common/_colors';
 
-module.exports = StyleSheet.create({
+export default StyleSheet.create({
   commentItem: {
     borderRadius: 5,
     borderWidth: 1,
@@ -13,14 +10,11 @@ module.exports = StyleSheet.create({
     padding: 10,
   },
   authorInfo: {
-    flex: 1,
     flexDirection: 'row',
   },
   avatar: {
     height: 35,
     width: 35,
-    borderWidth: 1,
-    borderColor: colors.underlay,
     borderRadius: 10,
   },
   author: {
@@ -55,13 +49,6 @@ module.exports = StyleSheet.create({
     fontSize: 12,
     lineHeight: 14,
     color: colors.mainField,
-  },
-  commentSection: {
-    marginVertical: 5,
-  },
-  commentImage: {
-    height: 200,
-    resizeMode: Image.resizeMode.contain,
   },
   other: {
     flex: 1,

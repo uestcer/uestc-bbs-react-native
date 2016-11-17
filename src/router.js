@@ -1,12 +1,14 @@
 import { Navigator } from 'react-native';
-import Home from './components/Home';
-import ForumList from './components/ForumList';
-import TopicDetail from './components/TopicDetail';
-import ForumDetail from './components/ForumDetail';
+import Home from './containers/Home';
+import ForumList from './containers/ForumList';
+import TopicDetail from './containers/TopicDetail';
+import ForumDetail from './containers/ForumDetail';
+import Search from './containers/Search';
+import Browser from './containers/Browser';
 
 let _navigator = null;
 
-class Router {
+export default class Router {
   constructor(navigator) {
     _navigator = navigator;
   }
@@ -53,6 +55,14 @@ class Router {
     }, true);
   }
 
+  toSearch() {
+    this._navigateTo({
+      id: 'search',
+      title: '搜索',
+      component: Search
+    });
+  }
+
   toTopic(topic) {
     this._navigateTo({
       id: 'topicDetail',
@@ -74,6 +84,12 @@ class Router {
       passProps: forum
     });
   }
-}
 
-module.exports = Router;
+  toBrowser(url) {
+    this._navigateTo({
+      id: 'WebView',
+      component: Browser,
+      passProps: { url }
+    });
+  }
+}

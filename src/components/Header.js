@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import styles from '../styles/components/_Header';
 import { MenuButton } from './button';
 
-class Header extends Component {
+export default class Header extends Component {
   render() {
     let leftTopButton = null;
     let rightTopButton = null;
@@ -16,14 +16,14 @@ class Header extends Component {
 
     switch (count) {
       case 0:
-        leftTopButton = <MenuButton style={styles.left} />;
+        leftTopButton = <MenuButton updateMenuState={isOpen => this.props.updateMenuState(isOpen)} style={styles.left} />;
         break;
       case 1:
-        leftTopButton = React.cloneElement(buttons, { style: [buttons.props.style, styles.left] });
+        leftTopButton = React.cloneElement(buttons, { style: [styles.left, buttons.props.style] });
         break;
       case 2:
-        leftTopButton = React.cloneElement(buttons[0], { style: [buttons[0].props.style, styles.left] });
-        rightTopButton = React.cloneElement(buttons[1], { style: [buttons[1].props.style, styles.right] });
+        leftTopButton = React.cloneElement(buttons[0], { style: [styles.left, buttons[0].props.style] });
+        rightTopButton = React.cloneElement(buttons[1], { style: [styles.right, buttons[1].props.style] });
         break;
     }
 
@@ -40,5 +40,3 @@ class Header extends Component {
     );
   }
 }
-
-module.exports = Header;

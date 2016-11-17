@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import colors from '../common/_colors';
 
-module.exports = StyleSheet.create({
+export default StyleSheet.create({
   subForum: {
     flex: 1,
     padding: 10,
@@ -18,7 +18,7 @@ module.exports = StyleSheet.create({
   subForumTodayPostsNumber: {
     flex: 1,
     textAlign: 'right',
-    color: colors.lightBlue,
+    color: colors.blue,
   },
   subForumLastPostDate: {
     textAlign: 'left',

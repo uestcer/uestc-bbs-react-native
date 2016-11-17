@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
 import colors from '../../common/_colors';
 
-module.exports = StyleSheet.create({
+export default StyleSheet.create({
   form: {
     margin: 10,
   },
   formItem: {
-    flex: 1,
     flexDirection: 'row',
     padding: 10,
     borderBottomWidth: 1,

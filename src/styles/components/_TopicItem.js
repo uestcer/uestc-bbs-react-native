@@ -1,10 +1,8 @@
 import { StyleSheet } from 'react-native';
 import colors from '../common/_colors';
 
-module.exports = StyleSheet.create({
+export default StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.underlay
@@ -13,13 +11,13 @@ module.exports = StyleSheet.create({
     margin: 10,
   },
   title: {
-    flex: 1,
     fontSize: 18,
     textAlign: 'left',
   },
   info: {
     flex: 1,
     flexDirection: 'row',
+    height: 25,
     marginTop: 10,
   },
   forum: {
@@ -29,17 +27,23 @@ module.exports = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginTop: 3,
-  },
-  name: {
-    flex: 1,
-    textAlign: 'right',
-    color: colors.mainField,
+    marginTop: 10,
   },
   date: {
     flex: 1,
     textAlign: 'left',
     color: colors.mainField,
+    marginTop: 4,
+  },
+  avatar: {
+    height: 25,
+    width: 25,
+    marginLeft: 5,
+    borderRadius: 5,
+  },
+  name: {
+    color: colors.mainField,
+    marginTop: 5,
   },
   forumInfo: {
     padding: 3,
@@ -48,6 +52,7 @@ module.exports = StyleSheet.create({
   },
   forumName: {
     color: colors.white,
+    marginTop: 1
   },
   viewsInfo: {
     color: colors.mainField,
